@@ -154,6 +154,69 @@
 
     第4行中，arguments[0]的值被修改后，非严格模式下name的值也会被修改，非严格模式下会输出10
 
-18. ​
+18. ECMAScript 变量 : **基本类型值**和**引用类型值**
+
+    其中，string 是基本类型值，不以对象进行表示。
+
+    ```javascript
+    var name = "test";
+    name.age = 27;
+    console.log(name.age);	//undefined
+    ```
+
+    定义基本类型和引用类型的变量都是在栈内存中分配值，但是基本类型的值是在栈中，而引用类型的值在堆中，栈中保存的对应在堆中的地址。当复制某个基本类型值的时候是在栈中开辟一段空间，保存其变量和其值，复制引用类型的变量时，则是在栈中开辟一段空间保存其变量和地址。所以修改经过复制得到的引用类型变量是会影响被复制的变量，而基本类型不会。
+
+    ![img](C:\Users\官欣仪\Desktop\hahaha\Front-End Notes\images\201708250850131.png)
 
     ​
+
+    ![img](C:\Users\官欣仪\Desktop\hahaha\Front-End Notes\images\201708250850132.png)
+
+    在传递参数时，基本类型变量和引用类型变量传递的都是值
+
+    ```javascript
+    function setName(obj){
+        obj.name = "name1";
+        obj = new Object();
+        obj.name = "name2";
+    }
+    var person = new Object();
+    setName(person);
+    console.log(person.name);	//name1
+    ```
+
+    如果是按引用传递的话，在setName函数体中，person会自动指向name为"name2"的新对象。但是再次访问person.name时，显示值为"name1"。这说明即使在函数内部修改了参数的值，但是原始的引用并没有改变。
+
+    故，善用 typeof 和 instanceof
+
+    ```javascript
+    var a = new object();
+    var b = 11;
+    console.log(typeof a);	// object
+    console.log(typeof b);	// number
+    console.log(a instanceof Object);	//true
+    console.log(b instanceof Object);	//false	
+    ```
+
+19. 环境，作用域链，作用域链 = = 这玩意自己看书吧...
+
+    凡是搜索啊什么什么之类的，基本都是从作用域链开始从前往后搜，作用域链最开始是arguments对象，然后再一层一层往外套。
+
+20. with语句,try...catch...语句可以延长作用域链(IE9好像修复了trycatch的这个问题...没测试过不知道)
+
+21. js没有块级作用域
+
+    ```javascript
+    for(var i = 0;i<10;i++){
+        //...
+    }
+    console.log(i);	//10
+    ```
+
+22. 如果初始化变量时没有用var声明，该变量会自动被添加到全局环境。
+
+    严格模式下，这样操作会报错。
+
+23. 接触一个值的引用并不是意味着自动回收该值所占用的内存，解除引用的真正作用是让值脱离执行环境，以便垃圾收集器在下次运行时将其回收。
+
+24. ​
