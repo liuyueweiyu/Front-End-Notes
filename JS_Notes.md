@@ -42,7 +42,7 @@
 
 10. 字符串解析特点
 
-    ECMAScript 中的字符串是不可变的，也就是说，字符串一旦创建，它们的值就不能改变。要改变某个变量保存的字符串，首先要销毁原来的字符串，然后再用另一个包含新值的字符串填充该变量。
+    ES 中的字符串是不可变的，也就是说，字符串一旦创建，它们的值就不能改变。要改变某个变量保存的字符串，首先要销毁原来的字符串，然后再用另一个包含新值的字符串填充该变量。
 
     ```javascript
     var lang = "Java";
@@ -81,7 +81,7 @@
 
 14. for-in 语句
 
-    ECMAScript 对象的属性没有顺序。因此，通过for-in循环输出的属性名的顺序是不可预测的。具体来说，所有属性都会被返回一次，返回的顺序可能因浏览器而异。
+    ES 对象的属性没有顺序。因此，通过for-in循环输出的属性名的顺序是不可预测的。具体来说，所有属性都会被返回一次，返回的顺序可能因浏览器而异。
 
 15. label 语句
 
@@ -154,7 +154,7 @@
 
     第4行中，arguments[0]的值被修改后，非严格模式下name的值也会被修改，非严格模式下会输出10
 
-18. ECMAScript 变量 : **基本类型值**和**引用类型值**
+18. ES 变量 : **基本类型值**和**引用类型值**
 
     其中，string 是基本类型值，不以对象进行表示。
 
@@ -198,7 +198,19 @@
     console.log(b instanceof Object);	//false	
     ```
 
-19. 环境，作用域链，作用域链 = = 这玩意自己看书吧...
+19. 环境，作用域，作用域链 = = 这玩意自己看书吧...
+
+    环境
+
+    变量对象
+
+    环境中的所有变量和函数都在变量对象中
+
+
+    每个函数都有自己的执行环境
+
+
+    当代码在环境中执行时，会创建变量对象的一个作用域链
 
     凡是搜索啊什么什么之类的，基本都是从作用域链开始从前往后搜，作用域链最开始是arguments对象，然后再一层一层往外套。
 
@@ -219,4 +231,30 @@
 
 23. 接触一个值的引用并不是意味着自动回收该值所占用的内存，解除引用的真正作用是让值脱离执行环境，以便垃圾收集器在下次运行时将其回收。
 
-24. ​
+24. 迭代器
+
+    every()	对于给定函数每一项返回true则返回true
+
+    filter()	对于给定函数，返回true项组成的数组
+
+    forEach() 遍历运行给定函数，没有返回值
+
+    map()	返回每次运行的结果
+
+    some()	对于给定函数存在返回true则返回true
+
+    ```javascript
+    var numbers = [1,2,3,4,5,4,3,2,1];
+
+    function moreThanTwo(number) {
+        return (number>2);
+    }
+
+    console.log(numbers.every(moreThanTwo));	//ture
+    console.log(numbers.filter(moreThanTwo));	//[ 3, 4, 5, 4, 3 ]
+    console.log(numbers.forEach(moreThanTwo));	//undefined
+    console.log(numbers.map(moreThanTwo));		//[ false, false, true, true, true, true, true, false, false ]
+    console.log(numbers.some(moreThanTwo));		//true
+    ```
+
+25. ​
