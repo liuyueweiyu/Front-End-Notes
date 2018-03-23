@@ -8,8 +8,152 @@
 
    并且 undefined 值派生自 null 值
 
-   null == undefined //true
+   ```javascript
+   null == undefined 	//true
+   ```
 
 4. 注意隐式调用Boolean()函数
 
-5. ​
+5. NaN和任何值都不相等，包括NaN本身
+
+6. isNaN()也适用于对象
+
+   基于调用对象时，会首先调用对象的valueOf() 方法，确定该返回的值能否转化为数值，如果不能，将会基于这个返回值，调用toString()返回值，再测试返回值
+
+7. Number() 函数转换
+
+   null 返回 0
+
+   undefined 返回 NaN
+
+   对象 同tip6
+
+8. parseInt() 函数转换
+
+   从头解析至第一个非数字字符的数值
+
+   ```javascript
+   parseInt("1234bule")；	//1234
+   ```
+
+   空字符串会返回NaN
+
+9. parseFloat()只解析十进制
+
+10. 字符串解析特点
+
+    ECMAScript 中的字符串是不可变的，也就是说，字符串一旦创建，它们的值就不能改变。要改变某个变量保存的字符串，首先要销毁原来的字符串，然后再用另一个包含新值的字符串填充该变量。
+
+    ```javascript
+    var lang = "Java";
+    lang = lang + "Script";
+    ```
+
+    变量lang开始时包含字符串"Java"。然后创建一个能容纳10个字符的新字符串，然后在这个字符串中填充"Java"和"Script"，最后在将原来的"Java"和"Script"字符串销毁
+
+11. Object 类型
+
+    ```javascript
+    var o = new Object();
+
+    o.constructor();	//构造函数
+    o.hasOwnProperty(propertyName);	//用于检查给定的属性在当前对象的实例中是否存在，propertyName必须以字符串形式指定
+    o.isPrototypeOf(object);	//用于检查传入的对象是否是当前对象的原型
+    o.propertyIsEnumberable(propertyName);	//用于检查所给属性是否能够迭代
+    o.toLocaleString();		//返回对象的字符串表示，与执行环境的地区有关
+    o.toString();	//返回字符串表示
+    o.valueOf();	//返回对象的字符串、数值或布尔值
+    ```
+
+12. Infinity 加 -Infinity 结果为NaN
+
+13.  == 和 ===
+
+    **==**	如果两个操作数相等返回true，不相等返回false。这两个先转换操作数(通常称为**强制转型**)，然后再比较相等性
+
+    ​	如果一个数是布尔值，在比较之前将其转换为数值
+
+    ​	一个是字符串，一个是数值，比较之前将字符串转化为数值
+
+    ​	两个操作数都是对象，则比较它们俩是不是同一个对象
+
+    **===**	它只在两个操作数未经过转换就不相等的情况下才返回true
+
+14. for-in 语句
+
+    ECMAScript 对象的属性没有顺序。因此，通过for-in循环输出的属性名的顺序是不可预测的。具体来说，所有属性都会被返回一次，返回的顺序可能因浏览器而异。
+
+15. label 语句
+
+    ```javascript
+    var number = 0;
+    label:
+    	for(;;)
+            for(var i = 0;i<10;i++){
+                if(i==5)
+                    break label;
+                number++;
+            }
+    console.log(number);	//5
+    ```
+
+16. with 语句
+
+    ```javascript
+    var qs = location.search.substring(1);
+    var hostname = location.hostname;
+    var url = location.href;
+
+    //上述语句等价于
+    with(location){
+        var qs = search.substring(1);
+    	var hostname = hostname;
+    	var url = href;
+    }
+    ```
+
+17. 函数参数
+
+    EMACScript 的函数是不介意传递多少个参数的。函数体内可以通过arguments对象来访问参数数组的，命名的参数只是提供便利，不是必须。
+
+    关于arguments的行为。它的值永远与对应命名的参数的值保持同步。
+
+    ```javascript
+    function test(name){
+        console.log(name);			
+        console.log(arguments[0]);	 
+        console.log(arguments[1]);	 
+    }
+
+    test(1);
+    //1 1 undefined
+
+    test(1,2);
+    //1 1 2
+    ```
+
+    形参name的值和arguments[0]的值保持同步，但是并不是说它们共有同一块内存空间，它们的内存空间相互独立，但是它们的值保持同步。
+
+    此外，如果**传入**一个参数，那么arguments[1] 设置的值不会反应到命名参数中，因此arguments的参数的长度只和传入参数的个数有关。
+
+    严格模式对arguments对象作出了一部分限制，形参的值和arguments数组的值不再保持同步。
+
+    ```javascript
+    "use strict";
+    function test(name) {
+        console.log(name);				// 1
+        arguments[0] = 10;				
+        console.log(name);				// 1
+        arguments[0] = name;
+        name = 10;
+        console.log(name);				// 10
+        console.log(arguments[0]);		 //1
+    }
+    test(1);
+    ```
+
+    第4行中，arguments[0]的值被修改后，非严格模式下name的值也会被修改，非严格模式下会输出10
+
+18. ​
+
+    ​
