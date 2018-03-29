@@ -208,10 +208,10 @@
 
 
     每个函数都有自己的执行环境
-
-
+    
+    
     当代码在环境中执行时，会创建变量对象的一个作用域链
-
+    
     凡是搜索啊什么什么之类的，基本都是从作用域链开始从前往后搜，作用域链最开始是arguments对象，然后再一层一层往外套。
 
 20. with语句,try...catch...语句可以延长作用域链(IE9好像修复了trycatch的这个问题...没测试过不知道)
@@ -257,4 +257,57 @@
     console.log(numbers.some(moreThanTwo));		//true
     ```
 
-25. ​
+25. Object 对象
+
+    数据属性
+
+    configurable
+
+    ```javascript
+    var person = {
+        name : "name1"
+    }
+    Object.defineProperty(person,"name",{
+        configurable : false,	//设置不可修改
+        value:"name2"
+    })
+
+    console.log(person.name);	//	name2
+    Object.name = "name3";	
+    console.log(person.name);	//	name2
+    Object.defineProperty(person,"name",{
+        configurable : true		//	设置为false后再设置为true程序报错。
+    });
+    console.log(person.name)
+    ```
+
+    访问器属性
+
+    在读取访问器属性的时候，会调用getter函数，这个函数返回属性的值，也可以通过setter函数，所以可以通过重写get，set函数来进行一些新的操作
+
+    ```javascript
+    var book = {
+        _year : 2014,   //变量前加_表示只能通过对象返问的属性
+        year : 2000,
+        edition : 1
+    };
+    console.log(book._year);	//2014
+    console.log(book.year);		//2000
+    console.log(book.edition);	//1
+
+    Object.defineProperty(book,"year",{
+        get:function () {
+            return this._year;
+        },
+        set:function (newValue) {
+              this._year = newValue;
+              this.edition += newValue - 2014;
+        }
+    });
+    book.year = 2015;
+    console.log(book._year);	//2015
+    console.log(book.year);		//2015
+    console.log(book.edition);	//2
+    ```
+
+    ​
