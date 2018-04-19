@@ -190,4 +190,127 @@
    console.log(p);	//["Hello",{y:"World"}]
    ```
 
-   ​
+   另一个例子
+
+   ```javascript
+   var node = {
+       loc : {
+           start : {
+               line:1,
+               column:5
+           }
+       }
+   };
+
+   var { loc,loc:{ start },loc:{ start:{ line }}} = node;
+   console.log(loc);	//{ start: { line: 1, column: 5 } }
+   console.log(start);	//{ line: 1, column: 5 }
+   console.log(line);	//1
+   ```
+
+   三次解构，分别对loc，start，line三个属性结构赋值，在最后一次解构中loc，start均是模式。
+
+4. 由于数组本质是特殊的对象，因此可以对数组进行对象属性的解构
+
+   ```javascript
+   let arr = [1,2,3];
+   let {0:first,[arr.length - 1] :last} = arr;
+
+   console.log(first);	//1
+   console.log(last);	//3
+   ```
+
+5. 字符串也可以解构赋值。此时字符串被转化成一个类似数组的对象。
+
+   ```javascript
+   let {length:len} = "hello";
+   console.log(len);	//5
+   ```
+
+6. 函数解构时默认值
+
+   注意两种写法的不同
+
+   ```javascript
+   function  move({x = 0,y=0} = {}) {
+       return [x,y];
+   }
+
+   console.log(move({x:3,y:8}));	//[3,8]
+   console.log(move({x:3}));		//[3,0]
+   console.log(move({}));			//[0,0]
+   console.log(move());			//[0,0]
+
+   function  move({x,y} = {x:0,y:0}) {
+       return [x,y];
+   }
+
+   console.log(move({x:3,y:8}));	//[3,8]
+   console.log(move({x:3}));		//[3,undefined]
+   console.log(move({}));			//[undined,undefined]
+   console.log(move());			//[0.0]
+   ```
+
+7. **用途**
+
+   1. 交换变量的值
+
+      ```javascript
+      let x = 1,y = 2;
+      [x,y] = [y,x];
+      console.log(x,y);	//2 1
+      ```
+
+   2. 从函数返回多个值
+
+      ```javascript
+      function example() {
+          return [1,2,3];
+      }
+
+      let [a,b,c] = example();
+      console.log(a,b,c);	//1 2 3
+      ```
+
+   3. 函数参数的定义
+
+      ```javascript
+      //参数是一组有次序的值
+      function f([x,y,z]) { /*...*/ }
+      f([1,2,3]);
+
+      //参数是一组无次序的值
+      function f({x,y,z}) { /*...*/ }
+      f({z:3,y:2,x:1});
+      ```
+
+   4. 提取json数据
+
+      **解构赋值对提取json对象中的数据尤其有用**
+
+      ```javascript
+      let jsonData = {
+          id:42,
+          status : "OK",
+          data:[867,5309]
+      };
+
+      let {id,status,data:number} = jsonData;
+      console.log(id,status,number);	//42 'OK' [ 867, 5309 ]
+      ```
+
+   5. 遍历Map结构
+
+      ```javascript
+      var map = new Map();
+      map.set("first","hello");
+      map.set("second","world");
+
+      for (let [key,value] of map){
+          console.log(key,value);
+      }
+      //first hello
+      //second world
+      ```
+
+###第4章 字符串的扩展
