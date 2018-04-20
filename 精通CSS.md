@@ -108,3 +108,14 @@
        </p>
    </a>
    ```
+   8. lable标签的关联
+
+      ```html
+      <!--方式1-->
+      <label>email <input name="email" type="text" z/></label>
+      <!--方式2-->
+      <lable for="email">email</lable>
+      <input name="email" id="email" type="text" />
+      ```
+
+   9. ​

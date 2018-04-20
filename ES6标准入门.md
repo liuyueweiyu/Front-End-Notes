@@ -314,3 +314,256 @@
       ```
 
 ###第4章 字符串的扩展
+
+1. 字符的Unicode表示法
+
+   如果直接在\u后面超过0xFFFF的数值比如\u20BB7，js会理解成\u20BB+7，由于\u20BB是一个不可打印字符，所以只会显示一个空格，后面跟一个7
+
+   ES6做出一点改进，只要将码点放入大括号中，就能正确解读该字符。即："\u{20BB7}"
+
+2. codePointAt可以识别32位的UTF-16字符
+
+3. fromCodePoint 方法定义在 String 对象上，而codePointAt 方法定义在字符串的实例对象上
+
+4. 字符串遍历接口
+
+   ```javascript
+   for(let codePoint of 'foo'){
+       console.log(codePoint);
+   }
+   //f
+   //o
+   //o
+   ```
+
+   这个遍历器可以识别大于0xFFFF的码点
+
+5. padStart()，padEnd()
+
+   padStart最常见的用途就是拿来补全指定位数
+
+   ```javascript
+   "1".padStart(10,"0");	//"0000000001"
+   "12345".padStart(10,"0");	//"0000012345"
+   ```
+
+### 第6章 数值的拓展
+
+1. Number("0b111")，Number("0o10").
+
+2. isFinite，isNaN
+
+   这与ES5的传统方法的区别在于，传统方法先调用Number()将非数值转为数值，再进行判断，而新方法只对数值有效，对于非数值一律返回false。isNaN只对NaN才返回true，非NaN一律返回false。
+
+3. ES6将全局方法parseInt() 和 parseFloat() 移植到了Number对象上
+
+4. 极小常量Number.EPSILON
+
+5. 安全整数--正负2的53次方
+
+6. 在V8引擎中，指数运算符与Math.pow 的实现不相同，对于特别大的运算结果，两者会有微妙的差异
+
+7. Integer数据不能与Number类型进行混合运算
+
+### 第7章 函数的扩展
+
+1. 参数变量是默认声明的，所以不用let或const再次声明
+
+   ```javascript
+   function foo(x = 1){
+       let x = 2;	//error
+       const x = 2;//error
+   }
+   ```
+
+2. 参数默认值不是传值的，而是每次都重新计算默认值表达式的值。也就是说，参数默认值是惰性求值。
+
+   ```javascript
+   let x = 99;
+   function foo(p = x + 1) {
+       console.log(p);	
+   }
+
+   foo();				//100
+   x = 100;
+   foo();				//101
+   ```
+
+   上面的代码中，参数p的默认值是x+1。这时，每次调用函数foo都会重新计算x+1，而不是默认p等于100
+
+3. 函数的length属性
+
+   1. 设置了默认值之后，函数的length属性将返回没有指定默认值的参数个数。
+   2. 设置了默认值的参数不是尾参数，那么length属性也不再计入后面的参数。
+
+4. 作用域
+
+   一旦设置了参数的默认值，函数在进行声明初始化的时候，参数会形成一个单独的作用域。
+
+   ```javascript
+   let x = 1;
+   function f(y = x) {
+       let x = 2;
+       console.log(y);
+   }
+   f();	//1
+   ```
+
+5. **应用**
+
+   可以利用参数默认值指定某一个参数不得省略，如果省略就抛出一个错误
+
+   ```javascript
+   function throwMissing() {
+       throw new Error("Missing parameter");
+   }
+
+   function foo(mustBeProvided = throwMissing()) {
+       return  mustBeProvided;
+   }
+
+   foo();
+   ```
+
+6. rest参数
+
+   1. 形式：...变量名，类似java的那个啥可变参数吧
+   2. rest参数中的变量代表一个数组，所以数组特有的方法都可以用于这个变量
+   3. rest参数之后不能再有其他参数
+
+7. 严格模式
+
+   1. 函数内部不可以使用严格模式
+
+   2. 规避限制方法
+
+      1. 使用全局严格模式
+
+      2. 把函数包在一个无参数的立即执行函数里面
+
+         ```javascript
+         const doSomething  = (function () {
+             "use strict";
+             return function (value = 42) {
+                 return value;
+             };
+         }());
+
+         ```
+
+8. name属性
+
+   注意在赋值匿名函数时ES5和ES6的差异
+
+   ES5返回空字符串，ES6返回实际函数名
+
+   Function 构造函数返回的函数实例，name属性值为anonymous
+
+   bind返回的函数，name属性值会加上 bound 前缀
+
+9. 箭头函数
+
+   1. 箭头函数的一个作用是简化回调函数
+
+   2. 箭头函数体的this对象是**定义**时所在的对象，而不是使用时所在的对象
+
+      ```javascript
+      function foo() {
+          setTimeout(()=>{
+              console.log(this.id);
+          },100);
+      }
+      var id =21;
+      foo.call( {id:42} );	//42
+      ```
+
+   3. 箭头函数体没有自身的this，所以可以达到"绑定"this的作用
+
+10. 箭头函数实现管道调用（QUQ没能看懂....mark一下以后看
+
+    ```javascript
+    const pipleline = (...funcs) => val => funcs.reduce((a,b) => b(a),val);
+    const plus1 = a=>a+1;
+    const mult2 = a=>a*2;
+    const addThenMult = pipleline(plus1,mult2);
+
+    console.log(addThenMult(5));	//12
+    ```
+
+11. 尾调用的优化
+
+    1. 函数调用会形成一个"调用记录"，即调用帧，保存调用位置和内部变量等信息。如果A函数的内容调用函数B，那么在A的调用帧上方会形成一个B的调用帧，等到B的运行结束，将结果返回到A，B的调用帧才会消失。如果函数B内部还调用了C就会还有一个C的调用帧。所有的调用帧就会形成一个调用栈。
+
+    2. 尾调用由于是函数的最后一步操作，所以，不需要保存外层函数的调用帧，因为调用位置，内部变量等信息都不会再用到，**直接用内层函数的调用帧取代外层函数的即可**。
+
+       ```javascript
+       function f(){
+           let m = 1;
+           let n = 2;
+           return g(m+n);
+       }
+
+       //等同于
+       function f(){
+           return g(3);
+       }
+
+       f();
+       //等同于
+       g();
+       ```
+
+       这就是"尾调用优化"，即只保留内层函数的调用帧。如果所有函数都是尾调用，那么完全可以做到每次执行时调用帧只有一项，这将大大节省内存。
+
+       PS:只有不在用到外层函数的内部变量的时候。内层函数的调用帧才会取代外层函数的调用帧，否则无法进行尾调用优化。
+
+    3. 尾递归
+
+       1. 敲黑板划重点（嘻嘻
+
+       2. 一旦使用递归，尽量使用尾递归
+
+       3. ES6的尾递归模式只在严格模式下才开启，正常模式是无效的
+
+          这是因为，在正常模式下函数内部有两个变量，可以跟踪函数的调用栈。
+
+          1. func.arguments:返回调用函数的参数
+          2. func.caller:返回调用当前函数的那个函数
+
+          尾调用优化发生时，函数的调用栈会被改写，因此上面两个变量会失真。严格模式禁用这两个变量，所以尾调用模式仅在严格模式下生效。
+
+       4. 避免递归——蹦床函数
+
+          蹦床函数可以将递归执行转化为循环执行
+
+          ```javascript
+          function trampoline(f){
+              while(f && f instanceof Function){
+                  f = f();
+              }
+              return f;
+          }
+          ```
+
+          这就是蹦床函数的一个实现，可以通过蹦床函数将递归执行转化为循环执行
+
+          ```javascript
+          function sum(x,y){
+              if(y > 0)
+                  return sum(x+1,y-1);
+              else
+                  return x;
+          }
+
+          //转化为蹦床参数函数
+          function sum(x,y){
+              if(y>0)
+                  return sum.bind(null,x+1,y-1);
+              else
+                  return x;
+          }
+
+          console.log(trampoline(sum(1,10000)));	//10001
+          ```
+
+          ​
