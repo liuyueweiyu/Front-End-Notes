@@ -481,14 +481,14 @@
 
 10. 箭头函数实现管道调用（QUQ没能看懂....mark一下以后看
 
-    ```javascript
-    const pipleline = (...funcs) => val => funcs.reduce((a,b) => b(a),val);
-    const plus1 = a=>a+1;
-    const mult2 = a=>a*2;
-    const addThenMult = pipleline(plus1,mult2);
+   ```javascript
+   const pipleline = (...funcs) => val => funcs.reduce((a,b) => b(a),val);
+   const plus1 = a=>a+1;
+   const mult2 = a=>a*2;
+   const addThenMult = pipleline(plus1,mult2);
 
-    console.log(addThenMult(5));	//12
-    ```
+   console.log(addThenMult(5));	//12
+   ```
 
 11. 尾调用的优化
 
@@ -566,4 +566,191 @@
           console.log(trampoline(sum(1,10000)));	//10001
           ```
 
-          ​
+
+### 第8章 数组的拓展
+
+1. 拓展运算符
+
+   1. ... 如同rest参数的逆运算
+
+      ```javascript
+      console.log(...[1,2,3]);	//1 2 3
+      ```
+
+   2. 该运算符只要用于函数调用
+
+      ```javascript
+      function push(array, ...intems) {
+          array.push(...intems);
+      }
+
+      let ar = [];
+      push(ar,1,2,3);
+      console.log(ar);	//[1,2,3]
+      ```
+
+   3. 替代数组的apply方法
+
+      由于拓展运算符可以**展开数组**，所以不再需要使用apply方法将数组转为函数参数
+
+      ```javascript
+      function f(x,y,z) {
+          console.log(x,y,z);
+      }
+
+      var args = [0,1,2];
+      //ES5
+      f.apply(null,args);
+      //ES6
+      f(...args);
+
+      //ES5
+      Math.max.apply(null,[14,3,77]);
+      //ES6
+      Math.max(...[14,3,77]);
+      //等同于
+      Math.max(14,3,77);
+
+      var arr1 = [0,1,2];
+      var arr2 = [3,4,5];
+      //ES5
+      Array.prototype.push.apply(arr1,arr2);
+      //ES6
+      arr1.push(...arr2);
+      ```
+
+   4. **应用**
+
+      1. 合并数组
+
+         ```javascript
+         //ES5
+         [1,2].concat(more);
+         //ES6
+         [1,2,...more];
+
+         var arr1 = [1,2];
+         var arr2 = [3,4];
+         var arr3 = [5,6];
+         //ES5
+         arr1.concat(arr2,arr3);	//[ 1, 2, 3, 4, 5, 6 ]
+         //ES
+         [...arr1,...arr2,...arr3];	//[ 1, 2, 3, 4, 5, 6 ]
+         ```
+
+      2. 与解构赋值结合
+
+         ```javascript
+         const [first,...rest] = [1,2,3,4,5];	//只能放在最后
+         first	//1
+         rest	//[2,3,4,5]
+         ```
+
+      3. 函数返回值
+
+      4. 将字符串转为数组
+
+         尤其是字符串中还有编码大于0xFFFF的特殊字符
+
+      5. 实现了Iterator接口的对象
+
+         对于那些没有Iterator的对象拓展运算符会报错
+
+         可以用Array.from方法转成数组
+
+      6. Map和Set结构，Generator函数
+
+2. Array.from方法
+
+   1. Array.from方法用于将两类对象转成真正的数组：类似数组的对象和可遍历的对象
+
+   2. 所谓类似对象本质：必须有length属性
+
+      ```javascript
+      let arraylike = {
+          '0' : 'a',
+          '1':'b',
+          // 'asd':'1',
+          length:3
+      }
+
+      console.log(Array.from(arraylike));	//[ 'a', 'b', undefined ]
+      ```
+
+   3. Array.from 可以将各种值转化为真正的数组。这实际上以为这，只要有一个原始数据结构，就可以先对它的值进行处理，然后转成规范的数组结构，进而可以使用数量众多的数组方法。
+
+      ```javascript
+      Array.from({length : 2},()=>'java');	//'jack','jack'
+      ```
+
+3. Array.of方法
+
+   将一组值转化为数组，弥补构造函数Array的不足
+
+   ```javascript
+   Array();	//[]
+   Array(3);	//[,,]
+   Array(2,3,4)//[2,3,4]
+   ```
+
+4. copyWithin
+
+   数组实例的copyWithin方法会在当前函数的数组内部将指定的成员复制到**其他位置**，然后返回当前数组。也就是说使用这个方法会修改当前数组。
+
+   它接受3个参数
+
+   - target	从该位置开始替换数据
+   - start        从该位置开始读数据，默认从0
+   - end          到该位置前停止读数据，默认数组长度
+
+   ```javascript
+   var a = [1,2,3,4,5].copyWithin(0,3);
+   console.log(a);	//[4,5,3,4,5]
+   ```
+
+5. find和findIndex
+
+   参数为一个回掉函数，分别找到一个满足该函数的成员，和索引
+
+   ```javascript
+   var a = [1,3,-5,10].find(i=>i<0);
+   console.log(a);	//-5
+   var a = [1,3,-5,10].findIndex(i=>i<0);
+   console.log(a);	//2
+   ```
+
+6. fill
+
+   定值填充数组，3个参数，填充值，填充起点，填充终点
+
+7. entries，keys和values遍历数组，分别获取键值对，建名以及键值
+
+8. includes
+
+   判断是否包含某个值
+
+   indexOf其内部使用严格等于进行判断会导致对NaN的误判
+
+   includes不会
+
+9. 数组的空位
+
+   1. [ , , ,]
+
+   2. 空位不是undefined，一个位置的值等于undefined依然是有值的。空位是没有任何值的。
+
+   3. ES5
+
+      - forEach，filter，every和some都会跳过空位
+      - map会跳过空位，但是保留这个值
+      - join和toString会将空位视为undefined，而undefined和null会被处理成空字符串
+
+      ES6
+
+      - 明确将空位视为undefined
+      - copyWithin直接将空位复制
+      - fill会将空位视为正常位置
+      - for...of也会遍历空位
+
+#### 第9章 对象的扩展
+
