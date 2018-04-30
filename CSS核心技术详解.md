@@ -1,3 +1,7 @@
+---
+typora-root-url: images
+---
+
 #### 第1章 遇见未知的CSS
 
 1. 使用pointer-events控制鼠标事件
@@ -169,3 +173,156 @@
       ================================================================================
 
       = =！这个没看的很懂唉！感觉回头再看一遍把！
+
+
+
+#### 第3章 CSS单位究竟来自何方
+
+1. 百分比
+
+   - 父元素在不设置高度的情况下，是自适应子元素的高度。在不设置高度的情况下，html和body的高度是所有内容加起来的告诉。在高度为0或者不设置高度的情况下，高度是**文字的行高**
+   - 当position设置为absolute的时候，此时元素已经脱离了文档流了，如果绝对定位的元素没有定位的祖先元素，则包含块为初始包含块，此时百分比是参照可视区的大小来计算的。
+   - 如果想让定位元素的高度占满整个屏幕，可以为body设置relative，该元素设置绝对定位。
+   - 固定定位参照可视区
+
+2. auto
+
+   - 块类非替换元素 = "margin-left" + "border-left-width" + "padding-left" + "width" + "padding-right" + "border-left-width" + "margin-right"
+
+     -  如果有一个值指定为auto，那么它的计算值为剩余空间
+     - 如果将宽度的值设置为auto，那么其他属性的auto都为0，剩余空间都会变成width的值
+     - 如果将margin-left和margin-right都设置为auto，则它们的计算值相等。也就是剩余空间一人一半
+
+   - 如果将行内元素margin-left或margin-right设置为auto，结果都是0，另外width对于行内元素也是无效的
+
+   - 绝对定位
+
+     - left和right是偏移量，可以假设这个left就是起点，而right作为一个终点，元素的宽度就由这两个值决定。
+
+     - 绝对定位的元素
+
+       包含块的宽 = "left" + "margin-left" + "border-left-width" + "padding-left" + "width" + "padding-right" + "border-left-width" + "margin-right" + "right"
+
+     - 行内和行内块元素的空间只有自身的那些位置，而那些位置又都让宽度和高度占了，所以在行内和行内块中设置auto就没有效果了。对于宽度和高度来说，设置auto始终没有意义。因为它是根据内容计算的。这也可以用来解释为什么说定位了的元素的元素要设置left和right为0，"margin: 0 auto"才会起效果。因为定位的元素和行内块一样，宽度和高度默认是由内容决定的，而这个宽度和高度都被内容占了，所以就没有效果了。设置了left和right为0时，它将剩余空间扩大了。就像块级元素一样，虽然看不见，但是如果设置了它的高度，剩下的空间就由其他属性分配。
+
+     - 对于浮动元素来说，如果设置width，margin为auto，那么其结果都为0，宽度由内容来决定
+
+   - 总结
+
+     水平方向
+
+     - 如果将一个替换元素的宽度设置为auto，则宽度等于内在宽度
+     - 对于行内元素来说，width并不适用，其他的几个属性，比如当margin-left设置为auto时，结果也都是0
+     - 块类元素将属性设置为auto的时，则占满剩余空间
+     - 对于绝对定位元素，如果只有一个属性的值为auto，则占满剩余空间
+
+     垂直方向
+
+     - 将替换元素设置为auto，其结果为0。如果将一个替换元素的高度设置为auto，则高度由内在高度决定
+     - 将块类，非替换元素，浮动的非替换设置auto，其结果为0，如果是height，则取决于子元素的高度的总和
+     - 绝对定位如果只有一个属性的值为auto，则占满整个空间
+
+3. ch
+
+   ch表示一个数字0的大小
+
+   1ch = 1个英文 = 1个数字 ； 2ch = 1个中文
+
+   ```css
+   {
+    	overflow:hidden;	/*超出隐藏*/
+       white-space:nowrap;	 /*防止换行*/
+   	text-overflow:elipsis;	/*省略号*/
+   }
+   ```
+
+4. min和max
+
+   - 设置图片一直保持文字后面，但间距不要太大，且超长隐藏
+
+     此时可以考虑设置max-width
+
+5. none
+
+   关于设置none还是0，使用none相当于不渲染，而使用0还是会渲染，对于性能来说肯定也是不一样的，所以尽量使用none关键字，而不要使用0
+
+#### 第4章 那些年我们一起定位过的元素
+
+1. relative并不脱离标准流，但是它的层级比标准元素高
+
+2. static是默认position的值。所以，可以用static取消定位。
+
+3. fixed的另外一个问题就是当移动端使用fixed的时候，制作遮罩的时候会发现，在部分浏览器中，如果滚动内容，遮罩后面的内容也会跟着滚动。可以试试
+
+   ```css
+   body{
+       position:fixed;
+       left:0;
+       top:0;
+   }
+   ```
+
+   会发现需要滚动的元素滚动不了了，所以还可以给该元素增加一个属性
+
+   ```css
+   overflow-y:auto;
+   ```
+
+   最简单的方法是直接给body增加overflow:hidden;然后关闭遮罩的时候去掉即可
+
+#### 第5章 元素的七十二变——元素转换
+
+1. display介绍
+
+   - none：在格式化结构中不产生框，同时使子元素也不产生任何框
+   - block：生成一个块框，独占一行，**在没有设置高度的情况下**，高度由内容决定
+   - inline：生成一个或多个行内框，其他含内元素或行内块，以及浮动可以与它并排，宽高由内容决定，并且width，height，margin-top，margin-bottom将不起作用，可以使用padding，但是上下padding不占位置
+   - inline-block：其他行内元素或者行内块元素，以及浮动元素可以与它并排，宽高由内容决定，但可以使用width，height，margin，padding等属性
+   - 初始值为inline，客户端对其他元素有默认样式，会将其覆盖，所以可以发现一些浏览器不认识的元素会被当成行内元素
+
+2. 行内元素将会与其他的行内以及行内块并排
+
+   ```html
+   <a>item1</a>
+   <a>item2</a>
+   ```
+
+   虽然并排但是会有几像素的间距，这个是由html文档中的换行和回车造成的
+
+   可以直接把两个元素放在一行即可解决问题
+
+3. inline
+
+   ```html
+   <style type="text/css">
+   html,body{
+       margin: 0;
+      	padding: 0;
+   }
+   .item1{
+       display: inline;
+       /*width: 200px;*/
+       /*height: 200px;*/
+       /*margin: 50px;*/
+       padding: 100px;
+       background-color: red;
+   }
+   .item2{
+       width: 100px;
+       height: 100px;
+       background-color: green;
+       border: 1px solid #dedede;
+   }
+   </style>
+      <div class="item1">item1</div>
+      <div class="item2">item2</div>
+   ```
+
+   效果如图
+
+   ![TIM截图20180428092319](/TIM截图20180428092319.jpg)
+
+   inline的padding会起作用，不过就像脱离了标准流一样，并不会占据位置，并且还把其他元素(item2的绿box)给盖住了。除了文字以外，看似padding-top似乎没有起作用，但其实是因为它不占位置的原因，跑到浏览器外面了。
+
+   假如inline的元素没有内容，padding-top/bottom将会不起作用，给padding-left/right设置个值就有用了(我猜是有高度没有宽度所以不显示...)，而且还会叠在正常元素上，也就是padding不占位置，且层级比其他元素高
+4. ​​
