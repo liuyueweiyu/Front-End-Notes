@@ -754,3 +754,181 @@
 
 #### 第9章 对象的扩展
 
+1. Object.is()
+
+   与严格相等运算符的行为基本一致
+
+   不同的只有两个
+
+   - +0不等于-0
+   - NaN等于自身
+
+2. Object.assign() 复制源对象属性
+
+   - 第一个参数是目标对象，后面的参数都是源对象
+
+   - 多个源对象有同名属性发生覆盖
+
+   - 如果只有一个参数，直接返回该参数
+
+   - 只复制源对象自身的属性，不复制继承属性，也不复制不可枚举的属性
+
+   - Symbol值也会被复制
+
+   - 只进行浅复制，即复制**引用**
+
+   - 可以用来处理数组，把数组视为0,1,2的对象
+
+     ```javascript
+     console.log(Object.assign([0,1,2],[3,4]));
+     //[ 3, 4, 2 ]
+     ```
+
+   - **常见用途**
+
+     - 为对象添加属性
+     - 为对象添加方法
+     - 克隆对象
+     - 合并多个对象
+     - 为属性指定默认值
+
+3. 属性的可枚举
+
+   ES5有3个操作会忽略enumerable为false的属性
+
+   1. for...in 循环
+   2. Object.keys()
+   3. JSON.stringify()
+
+   ES6新增一个Object.assign()
+
+   上述4个操作中，只有for...in会返回继承的属性。实际上，**引入enumerable的最初目的就是让某些属性可以规避掉for...in操作**。比如，对象原型的toString方法以及数组的length属性就是通过这样的手段而不会被for...in遍历到。
+
+4. 属性的枚举
+
+   ES6总共有5种方法，可以遍历对象的属性
+
+   1. for...in
+
+      可以遍历对象自身的和**继承**的可枚举属性，不含symbol属性
+
+   2. Object.keys(obj)
+
+      返回一个数组，包括对象自身的（不含继承的）所有可枚举属性（不含symbol属性）
+
+   3. Object.getOwnPropertyNames(obj)
+
+      返回一个数组，包括对象自身的所有属性（不含symbol属性，但是**包含不可枚举属性**）
+
+   4. Object.getOwnPropertySymbols(obj)
+
+      返回一个数组，包括对象自身的所有symbol值
+
+   5. Reflect.ownKeys(obj)
+
+      返回一个数组，包含对象自身的所有属性，不管是属性名还是Symbol还是字符串，也不管是否可枚举
+
+   以上所有属性都遵守同样的属性遍历次序规则
+
+   1. 首先遍历所有属性名为数值的属性，按照数字排序
+   2. 其次遍历所有属性名为字符串的属性，按照生成时间排序
+   3. 最后遍历所有属性名为Symbol值的属性，按照生成时间排序
+
+5. 对象的拓展元素符
+
+   - 结构赋值
+
+     ```javascript
+     let {x,y,...z} = {x:1,y:2,a:3,b:4};
+     console.log(z);		//{a:3,b:4}
+     ```
+
+     解构赋值的复制是浅复制，即如果一个键的值是复合类型的值，那么为复制引用
+
+   - 拓展运算符可以用于合并两个对象
+
+     ```javascript
+     let ab = {...a,...b}
+     ```
+
+6. Object.getOwnPropertyDescriptors
+
+   该方法的引入主要是为了解决Object.assign()无法正确复制get属性和set属性的问题
+
+7. Null传导运算符
+
+   ?.	只要其中一个返回null或undefined，就不要在计算，而是返回undefined
+
+#### 第10章 Symbol
+
+1. Symbol，表示独一无二的值
+
+   ```javascript
+   var s1 = Symbol("foo");
+   var s2 = Symbol("foo");
+
+   s1 === s2	//false
+   ```
+
+   上面s1和s2都是Symbol函数的返回值，并且参数相同，但是他们是不相等的。
+
+2. Symbol值不能与其他类型的值进行运算
+
+3. 作为属性名的Symbol
+
+   ```javascript
+   var mySymbol =  Symbol();
+
+   //第一种
+   var a = {};
+   a[mySymbol] = "hello";
+
+   //第二种
+   var a = {
+       [mySymbol]:"hello"
+   }
+
+   //第三种
+   var a = {};
+   Object.defineProperties(a,mySymbol,{value:"hello"});
+   ```
+
+4. 属性名的遍历
+
+   Symbol作为属性名，该属性不会出现在for...in，for...of 循环中，也不会被Object.keys()，Object.getOwnPropertyNames()返回
+
+   Symbol值作为名称的属性不会被常规方法遍历的到，可以利用这个特性为对象定义一些非私有但是只用于内部的方法
+
+5. Symbol.for()，Symbol.keyFor()
+
+   ```javascript
+   var s1 = Symbol.for("foo");
+   var s2 = Symbol.for("foo");
+   console.log(s1 === s2);	//true
+   ```
+
+   Symbol.for与Symbol都会生成新的Symbol，但是前者会在被登记的全局环境中搜索，后者不会。
+
+6. 内置的Symbol值
+
+   - Symbol.hasInstance
+
+     Symbol.hasInstance属性是指向内部的方法，对象使用instanceof运算符时会调用这个方法，判断该对象是否为某个构造函数的实例，比如 foo instanceof Foo 在语言内部调用的就是Foo\[Symbol.hasInstance](foo)
+
+     ```javascript
+     class MyClass {
+         [Symbol.hasInstance](foo){
+             return foo instanceof Array;
+         }
+     }
+
+     console.log([1,2,3] instanceof new MyClass());	//true
+     ```
+
+   - Symbol.isConcatSpreadable
+
+     表示对象使用，Array.prototype.concat时是否可以展开
+
+     数组默认行为是可以展开的，对象是不展开的
+
+   - ....还有9个以后查文档吧XDDD

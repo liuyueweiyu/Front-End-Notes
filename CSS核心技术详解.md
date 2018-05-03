@@ -325,4 +325,191 @@ typora-root-url: images
    inline的padding会起作用，不过就像脱离了标准流一样，并不会占据位置，并且还把其他元素(item2的绿box)给盖住了。除了文字以外，看似padding-top似乎没有起作用，但其实是因为它不占位置的原因，跑到浏览器外面了。
 
    假如inline的元素没有内容，padding-top/bottom将会不起作用，给padding-left/right设置个值就有用了(我猜是有高度没有宽度所以不显示...)，而且还会叠在正常元素上，也就是padding不占位置，且层级比其他元素高
-4. ​​
+
+4. inline和inline-block都会引起间距的空格，解决方案
+
+   - 去掉空格（僵硬
+
+   - 将margin-left设置为负值
+
+   - 给父元素加font-size:0px;
+
+   - 给父元素加letter-spacing负值，然后通过子元素清除letter-spacing值
+
+     ```css
+     .fa{
+         letter-spacing:-8px;
+     }
+     .fa *{
+         letter-spacing:0px;
+     }
+     ```
+
+5. 制作垂直居中的其他方法
+
+   ```html
+       <div class="box">
+           <div>
+               <p>hhh</p>
+           </div>
+       </div>
+   ```
+
+   ```scss
+   .box{
+     display: table;		/*父元素display:table*/
+     width: 200px;
+     height: 200px;
+     background-color: pink;
+     div{				   
+       display: table-cell;	/*子元素为table-cell且只有一个，默认占满父元素*/
+       vertical-align: middle;	/*将div中的子元素p垂直居中*/
+       p{
+         width: 50px;
+         text-align: center;
+         height: 50px;
+         background-color: #e6323e;
+         margin: 0 auto;		/*p元素水平居中*/
+       }
+     }
+   }
+   ```
+
+   原理是display:table-cell的元素可以像表格一样使用vertical-align属性，先让它垂直居中，然后再给子元素设置margin:0 auto;就行。
+
+#### 第6章 浮动趣事
+
+1. float三个属性
+   - none：不浮动，默认值
+   - left：产生一个块框，并向左浮动。起点是框的顶部（除非还设置了clear属性），**display被忽略**，除非为none值，如果它的后一个元素是块级元素，那么后一个元素将会占据浮动的位置，并且浮动的元素的层级总是在标准流之上
+   - right：和left一样，只不过是向右浮动
+2. 当元素设置定位值为absolute，fixed时，浮动将被忽略
+3. 因为行内元素使用浮动之后产生了块框，因此它可以使用width，height，margin，padding等属性
+4. 父元素无法自适应浮动元素的高度
+5. 浮动元素会被后一个元素(不浮动)的margin-top值所影响
+6. 浮动实现文字环绕
+
+#### 第7章 再不学这些选择器就老了
+
+1. :active选择器
+
+2. :first-letter选择第一个字
+
+3. :first-line选择首行文字
+
+4. 模拟父元素选择器
+
+   本质是利用其它元素替代父元素，然后通过相邻元素选择器实现
+
+5. :empty选择器
+
+   可以利用empty选择器+伪元素选择器给默认提示
+
+6. :target选择器
+
+   - 利用:target选择器实现遮罩
+
+#### 第八章 CSS图标制作
+
+1. 一个元素开始没有边框，后面动态加上去，那么它就会抖动
+
+   可以加一个透明的边框，或者在没有背景色的情况下加个padding，然后hover加border的时候去掉padding
+
+2. outline不占空间，类似box-sizing
+
+3. 善用box-shadow！！！
+
+   x轴偏移量 y轴偏移量 阴影大小 边框大小 填充的颜色
+
+#### 第9章 你今天换背景了吗
+
+1. 改变背景原点 background-origin
+
+   - padding-box：从padding区域（含padding）开始显示背景图像
+   - border-box：从border区域（含border）开始显示图像
+   - content-box：从content区域开始显示图像
+
+2. 图片剪裁 background-clip
+
+   - 利用background-clip制作图片缩放效果
+
+     根据属性不同从开始剪裁的区域不同实现缩放
+
+   - 可以背景到文字上
+
+     把文字颜色设置成透明，然后在将背景剪裁设置为text
+
+     ```html
+     <style>
+     .box{
+       	font-size: 100px;
+       	-webkit-text-fill-color: transparent;
+       	background: url("images/20170116105232_K3WNQ.jpg");
+       	-webkit-background-clip: text;
+     }
+     </style>
+         <div class="box">
+             honeyworks
+         </div>
+     ```
+
+     ![TIM截图20180430151603](/TIM截图20180430151603.jpg)
+
+   - 多重背景
+
+     背景定位如果只写一个值，后一个默认居中
+
+#### 第10章 让文字更美一点
+
+1. 文字渐变
+
+   和上面使用背景剪裁一样，只不过是把背景设置为渐变色
+
+2. 文字两端对齐
+
+   - justify：内容两端对齐，但对换行以及最后一行不做处理
+   - start：水平方向类似left，垂直方向类似top
+   - end：相反
+   - justify-all：与justify效果等同，但会对最后两端也对齐
+
+3. 末尾文本对齐 text-align-last
+
+   PS：如果同时设置text-align和text-align-last，那么会忽略text-align对最后一行的设置
+
+4. 文本书写模式 writing-mode
+
+5. webkit内核的浏览器有一个line-clamp属性，它可以用来限制一个块级元素显示的文本行数
+
+6. 字母转化大小写 text-ttransform
+
+#### 第11章 内容生成技术——用CSS来计数
+
+1. 伪元素两个冒号....一个冒号是为了兼容以前的浏览器
+
+2. counter-reset重置计数器
+
+   在父元素重置
+
+3. 可以手动更改counter-increment
+
+4. content的其他用途
+
+   - attr：插入标签属性值
+   - url：插入一个外部元素
+
+   ```Css
+   .box a::after{
+   	content:attr(title);	/*插入该a标签的title属性值*/
+   }
+   ```
+
+
+
+
+
+
+
+####第13章 飞越CSS
+
+1. 当边框颜色和文字颜色一样时，可以省略边框颜色
+2. 当文字颜色和其他颜色一样的时候，可以使用currentColor关键字来继承颜色
