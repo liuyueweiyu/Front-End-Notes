@@ -752,7 +752,7 @@
       - fill会将空位视为正常位置
       - for...of也会遍历空位
 
-#### 第9章 对象的扩展
+### 第9章 对象的扩展
 
 1. Object.is()
 
@@ -859,7 +859,7 @@
 
    ?.	只要其中一个返回null或undefined，就不要在计算，而是返回undefined
 
-#### 第10章 Symbol
+### 第10章 Symbol
 
 1. Symbol，表示独一无二的值
 
@@ -932,3 +932,358 @@
      数组默认行为是可以展开的，对象是不展开的
 
    - ....还有9个以后查文档吧XDDD
+
+### 第15章 Iterator和for...of循环
+
+1. Iterator接口的目的是为所有数据结构提供统一的访问机制，即for...of循环
+
+2. 数据结构只要部署了Iterator接口，我们就称这种数据结构为可遍历的
+
+3. 默认的Iterator接口部署在数据结构的Symbol.iterator属性
+
+4. 遍历器对象必须部署next方法，还可以具有return方法和throw方法
+
+   - return方法
+
+     如果for...of心有讯黄提前退出，就会调用return方法；如果一个对象在对象完成遍历前需要清理或释放资源，就可以部署return方法
+
+     return方法必须返回一个对象
+
+   - throw方法
+
+5. for...of循环调用遍历器接口，数组的遍历器接口只返回具有数字索引的属性
+
+   ```javascript
+   let arr = [1,2,3];
+   arr.foo = "hhh";
+   for (let i in arr)
+       console.log(i);		//1,2,3,foo
+   for (let i of arr)
+       console.log(i);		//1,2,3
+   ```
+
+6. set和map遍历的顺序是按照各个成员被添加进数组的顺序，set返回一个值，map返回一个[键，值]的数组
+
+7. for...in循环的缺点
+
+   - 数组的键名是数字，但是for...in是以字符串即"0"，"1"，"2"
+   - for...in还会遍历手动添加的键名，甚至原型链上的键
+   - for...in有时会以任意顺序遍历
+   - 不可以配合break，continue，return~~食用~~
+
+### 第16章 Generator函数的语法
+
+1. 执行Generator函数会返回一个遍历器对象
+
+2. 遍历器对象的next方法运行逻辑如下
+
+   - 遇到yield语句就会暂停执行后面的操作，yield后面表达式的值作为返回的对象的value的属性值
+   - 下次调用next方法的时候继续执行，直到下一条yield语句
+   - 如果没有遇见yield语句，就一直运行到函数结束，直到return语句，return后面表达式的值作为返回的对象的value值
+   - 没有return，value为"undefined"
+
+   ```javascript
+   function* f() {
+       yield 123;
+       yield 456;
+       return 890;
+   }
+   h = f();
+   console.log(h.next());//{ value: 123, done: false }
+   console.log(h.next());//{ value: 456, done: false }
+   console.log(h.next());//{ value: 890, done: true }
+   console.log(h.next());//{ value: undefined, done: true }
+
+   ```
+
+   PS：只有调用时才会进行yield语句后面的表达式
+
+   ```javascript
+   //!!输出顺序....!!
+   function *f() {
+       console.log("hello",(yield ));
+       console.log("hell0" , (yield 123));
+   }
+   let h = f();
+   console.log(h.next());
+   //{ value: undefined, done: false }
+   //hello undefined
+   console.log(h.next());
+   //{ value: 123, done: false }
+   //hell0 undefined
+   console.log(h.next());
+   //{ value: undefined, done: true }
+   console.log(h.next());
+   //{ value: undefined, done: true }
+   ```
+
+3. next方法的参数
+
+   yield语句本身没有返回值，或者说总返回undefined。
+
+   next方法可以带一个参数，作为上一条yield语句的返回值
+
+   ```javascript
+   function* f() {
+       for (let i = 0;true;i++){
+           let reset = yield i;
+           if(reset)
+               i = -1;
+       }
+   }
+   let g = f();
+   console.log(g.next());			//{ value: 0, done: false }
+   console.log(g.next());			//{ value: 1, done: false }
+   console.log(g.next(undefined));	 //{ value: 2, done: false }
+   console.log(g.next(true));		 //{ value: 0, done: false }
+   //通过给next方法添加参数使generator函数重启
+   ```
+
+   即，可以通过next方法的参数就有办法在generator函数运行的不同阶段从外部向内部注入不同的值，从而调整函数的行为
+
+4. generator函数内部署的try...catch可以被throw方法捕获
+
+5. throw方法执行的时候自带执行一次next
+
+6. for...of循环
+
+   ```javascript
+   function* objectEntries() {
+       let proKeys = Object.keys(this);
+       for (let prokey of proKeys){
+           yield [prokey,this[prokey]];
+       }
+   }
+
+   let jane = {
+       first:"Jane",
+       last:"Doe"
+   };
+
+   jane[Symbol.iterator] = objectEntries;
+
+   for (let [key,value] of jane)
+       console.log(`${key}:${value}`);
+
+   //first:Jane
+   //last:Doe
+   ```
+
+7. yield* 语句
+
+   yield* 命令可以很方便地取出嵌套数组的所有成员
+
+    ```javascript
+   const tree = ['a',['b','c'],['d','e']];
+
+   function* iterTree(tree) {
+       if(Array.isArray(tree)){
+           for(let i = 0 ; i <tree.length;i++)
+               yield  *iterTree(tree[i]);
+       }
+       else
+           yield tree;
+   }
+
+   console.log([...iterTree(tree)]);//[ 'a', 'b', 'c', 'd', 'e' ]
+    ```
+
+8. generator函数this
+
+   ```javascript
+   function *f() {
+       this.a = 11;
+   }
+   let obj = f();
+   console.log(obj.a);//undefined
+   ```
+
+   让generator函数返回一个正常的对象实例，既可以用next方法，也可以获取正常的this
+
+   变通方法：生成一个空的对象，使用call绑定this，这样这个空对象就是generator函数的实例对象
+
+   ```javascript
+   function* F() {
+       this.a = 1;
+       yield this.b = 2;
+       yield this.c = 3;
+   }
+   let obj = {};
+   let f = F.call(obj);
+   console.log(f.next());	//{ value: 2, done: false }
+   console.log(f.next());	//{ value: 3, done: false }
+   console.log(f.next());	//{ value: undefined, done: true }
+   console.log(obj.a);		//	1
+   console.log(obj.b);		//	2
+   console.log(obj.c);		//	3
+   ```
+
+   还可以继续往下统一
+
+   ```javascript
+   function* F() {
+       this.a = 1;
+       yield this.b = 2;
+       yield this.c = 3;
+   }
+   let f = F.call(F.prototype);	//这样就把属性绑定到f上了，不过注意原型链
+   console.log(f.next());	//{ value: 2, done: false }
+   console.log(f.next());	//{ value: 3, done: false }
+   console.log(f.next());	//{ value: undefined, done: true }
+   console.log(f.a);		//	1
+   console.log(f.b);		//	2
+   console.log(f.c);		//	3
+   ```
+
+9. generator函数是实现状态机的最佳结构
+
+   ```javascript
+   function *clock() {
+       while (true){
+           console.log("Tick!");
+           yield ;
+           console.log("Tock!");
+           yield ;
+       }
+   }
+   ```
+
+10. 应用 
+
+  - 异步操作的同步化表达
+
+    处理异步操作，改写回调函数
+
+    ```javascript
+    function* loadUI() {
+        showLoadingScreen();
+        yield loadUIDataAsynchronously();
+        hideLoadingScreen();
+    }
+    let loarder = loadUI();
+    //加载UI
+    loarder.next();
+    //卸载UI
+    loarder.next();
+    ```
+
+  - 控制流管理
+
+    ````javascript
+    step1(function (value1) {
+        step2(function (value2) {
+            step3(function (value3) {
+                step4(function (value4) {
+                    //do something...
+                });
+            });
+        });
+    });
+
+    //改善
+    let steps = [step,step2,step3,step4];
+    function* iterateSteps(values) {
+        for (var i = 0 ; i<steps.length ; i++){
+            let step = steps[i];
+            yield step();
+        } 
+    }
+    ````
+
+  - 部署Iterator接口
+
+  - 作为数据结构
+
+### 第17章 Generator函数的异步应用
+
+1. Generator函数执行的一个真实的异步任务
+
+   ```javascript
+   var fetch = require("node-fetch");
+   function* gen() {
+       var url = "https://api.github.com/users/github";
+       var result = yield fetch(url);
+       console.log(result.bio);
+   }
+
+   var g = gen();
+   var result = g.next();
+
+   result.value.then(function (data) {		//fetch模块返回的是一个Promise对象
+       return data.json();
+   }).then(function (data) {
+       g.next(data);
+   });
+   ```
+
+2. 编译器的"传名调用"的实现往往是将参数放到一个临时的函数之中，再将这个临时函数传入函数体。这个函数就是Thunk函数。
+
+3. Thunk函数
+
+   ```javascript
+   //正常版本的readFile
+   fs.readFile(fileName,callback);
+   //Thunk版本的readFile
+   let Thunk = function (fileName){
+       return function (callback){
+           return fs.readFile(fileName, callback);
+       }  
+   }
+
+   let readFileThunk = Thunk(fileName);
+   readFileThunk(callback);
+   ```
+
+4. Thunkify模块
+
+   - 实现和上面差不多吧= =
+
+   - 看个sample吧。。。
+
+     ```javascript
+     function f(a, b, callback){
+         var sum = a + b;
+         callback(sum);
+     }
+
+     var ft = thunkfify(f);
+     var print = console.log.bind(console);
+     ft(1,3)(print);
+     // 4
+     ```
+
+5. Thunk函数的自动流程管理（不是很理解orz...
+
+   ```javascript
+   function run(fn) {
+       let gen = fu();
+       function  next(err,data) {
+           let result = gen.next(data);
+           if(result.done)
+               return;
+           result.value(next);
+       }
+       next();
+   }
+
+   function* g() {
+       // ...
+   }
+
+   run(g);
+   ```
+
+6. co模块
+
+   ```javascript
+   function* gen(){ 
+       // ...
+   }
+   //使用co模块无须编写generator函数的执行器
+   var co = require("co");
+   co(gen);
+   //放入co容器就可以自动执行,co函数返回一个promise对象
+   //yield命令后面只能是Thunk函数或者promise对象 v4.0好像只能支持promise了...
+   ```
+
+   ​
