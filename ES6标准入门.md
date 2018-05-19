@@ -933,6 +933,379 @@
 
    - ....还有9个以后查文档吧XDDD
 
+### 第11章 Set和Map数据结构
+
+1. Set类似数组，但是成员的值是唯一的，没有重复
+
+   ```javascript
+   const items = new Set([1,2,3,4,5,5,5,5]);
+   console.log(items.size);	//5
+   ```
+
+   所以可以用set数组去重
+
+   ```javascrip
+   [...new Set([1,2,3,4,5,5,5,5])]	//[ 1, 2, 3, 4, 5 ]
+   ```
+
+2. 向set加入值不会发生类型转化，5和"5"是两个不同的值。set内部判断两个值是否相等使用的算法类似与严格等于，主要区别是set中NaN等于自身，严格等于不等于
+
+   另外两个对象总是不相等
+
+   ```javascript
+   let  a = {};
+   let set = new Set();
+   set.add(a);
+   set.add(a);
+   console.log(set.size);//1
+   ```
+
+3. Array.from方法可以将Set转成数组(解构也行啊！)
+
+4. Set实例的属性与方法
+
+   - 操作方法
+
+     - add
+     - delete
+     - has
+     - clear  清除所有成员
+
+   - 遍历操作
+
+     - keys 返回键名的遍历器
+     - values 返回键值的遍历器
+     - entries 返回键值对的遍历器
+     - forEach 使用回调函数遍历每个成员
+
+     ```javascript
+     let set = new Set(["red","green","blue"]);
+     for(let item of set.keys())
+         console.log(item);
+     for(let item of set.values())
+         console.log(item);
+     for (let item of set.entries())
+         console.log(item);
+     // red
+     // green
+     // blue
+     // red
+     // green
+     // blue
+     // [ 'red', 'red' ]
+     // [ 'green', 'green' ]
+     // [ 'blue', 'blue' ]
+     ```
+
+     ```javascript
+     let set = new Set(["red","green","blue"]);
+     set.forEach((key,value)=>{
+         console.log(key,value);
+     });
+     // red red
+     // green green
+     // blue blue
+     ```
+
+   - 遍历的应用
+
+     ```javascript
+     let a = new Set([1,2,3]);
+     let b = new Set([2,3,4]);
+
+     //并集
+     let union = [...new Set([...a,...b])];
+     console.log(union); //[ 1, 2, 3, 4 ]
+
+     //交集
+     let interset = [...new Set([...b].filter(x=>a.has(x)))];
+     console.log(interset); //[ 2, 3 ]
+
+     //差集
+     let difference = [...new Set([...b].filter(x=>!a.has(x))),...new Set([...a].filter(x=>!b.has(x)))];
+     console.log(difference);//[ 4, 1 ]
+     ```
+
+     在遍历操作中同步改变原来的set结构，目前没有直接方法，但是可以变通XDDD
+
+     ```javascript
+     let a = new Set([1,2,3]);
+     a = new Set([...a].map(x=>x*2));    //Set { 2, 4, 6 }
+     ```
+
+5. WeakSet
+
+   和Set区别
+
+   - WeakSet的成员只能是对象，而不能是其他类型的值
+
+   - WeakSet的对象都是弱引用，即垃圾回收机制不考虑WeakSet对该对象的引用
+
+     ```javascript
+     const a = [[1,2],[3,4]];
+     const ws = new WeakSet(a);//WeakSet {[1,2],[3,4]}
+     //成为WeakSet的成员的是a数组的成员，而不是a数组本身
+     ```
+
+   - WeakSet没有size属性，没有办法遍历其成员
+
+6. Map——键值对的集合
+
+   键的范围不限于字符串，各种类型的值都可以当做键
+
+   基本用法：
+
+   ```javascript
+   const m = new Map();
+   const o = {p:"hello world"};
+   m.set(o,"xixi");
+   console.log(m.get(o));  //xixi
+   //只有对同一个对象的引用，Map才会将其视为同一个键
+   ```
+
+7. Map遍历方法同Set，也同样适用...解构
+
+   ```javascript
+   const m = new Map([
+       [1,"one"],
+       [2,"two"],
+       [3,"three"]
+   ]);
+
+   console.log([...m]);	//[ [ 1, 'one' ], [ 2, 'two' ], [ 3, 'three' ] ]
+   ```
+
+   结合数组的map，filter方法可以实现map的遍历和过滤
+
+   ```javascript
+   let m = new Map([
+       [1,"one"],
+       [2,"two"],
+       [3,"three"]
+   ]);
+   [...m].map(([key,value])=>console.log(key,value));
+   m = new Map([...m].filter(([key,value])=>key<3));
+   ```
+
+8. WeakMap类似WeakSet
+
+   WeakMap弱引用的只是键名，键值依然是正常引用
+
+9. 可以把DOM结点和其绑定事件放在WeakMap里面，一旦这个结点删除该状态就会自动消失，不存在泄漏危险。
+
+
+### 第12章 Proxy
+
+1. 语法
+
+   ```javascript
+   // proxy = new Proxy(target,handler);
+   let obj = new Proxy({},{
+      get:function (target,key,receiver) {
+          console.log("getting...");
+          return Reflect.get(target,key,receiver)
+      },
+       set:function (target,key,value,receiver) {
+           console.log("setting...");
+           return Reflect.get(target,key,value,receiver);
+       }
+   });
+
+   obj.a = 3;
+   obj.a++;
+   //setting...
+   //getting...
+   //setting...
+   ```
+
+2. 要使proxy起作用，必须针对proxy实例操作，而不是对目标对象操作
+
+3. 一个技巧是将proxy对象设置到object.proxy属性上，从而可以在object对象上调用
+
+   ```javascript
+   let obj = {
+       proxy:new Proxy(this,{
+           get:function (target,property) {
+               return 35;
+           }
+       }),
+       a:20
+   };
+   console.log(obj.a);	//20
+   console.log(obj.proxy.a);	//35
+   ```
+
+4. proxy对象也可以作为其他对象的原型实例
+
+   ```javascript
+   let proxy = new Proxy({},{
+       get:function (target,property) {
+           return 35;
+       },
+   });
+   let obj = Object.create(proxy);
+   console.log(obj.time);	//35
+   //obj对象本身没有time属性，所以根据原型链会在proxy对象上读取该属性，导致拦截
+   ```
+
+5. 拦截操作
+
+   - get(target,key,receiver)
+   - set(target,key,value,receiver)
+   - has(target,key)
+   - deleteProperty(target,key)
+   - ownKeys(target,key)
+   - getOwnPropertyDescriptor(target,key)
+   - defineProperty(target,key,propDesc)
+   - ......
+
+6. 如果一个属性不可配置或者不可以写，则该属性不能被代理，通过proxy对象访问该属性会出错
+
+7. 可以在set属性拦截，即每当对象发生改变是自动更新DOM
+
+8. 有时我们会在对象上设置内部的属性，属性名的第一个字符使用下划线开头，表示这些属性不你应该被外界使用，结合proxy的set和get拦截就可以防止这些内部属性被外部读/写
+
+9. Proxy实例作为函数调用时，就会被apply方法拦截
+
+   ```javascript
+   let twice = {
+       apply(target,ctx,args){
+           return Reflect.apply(...arguments)*2;
+       }
+   };
+
+   function sum(left,right) {
+       return left+right;
+   }
+   let proxy = new Proxy(sum,twice);
+   console.log(proxy(1,2));	//3
+   console.log(proxy.apply(null,[1,2]));	//3
+   console.log(proxy.call(null,1,2));		//3
+   ```
+
+10. has方法可以用来拦截HasProperty操作，即判断对象是否具有某个属性时，这个方法会生效。典型操作是in运算符。PS:has 对for...in 循环不生效
+
+    ```javascript
+    let handler = {
+        has(target,key){
+            if(key[0] === "_"){
+                return false;
+            }
+            return key in target;
+        }
+    };
+    let target = { _prop : "foo",prop:"foo" };
+    let proxy = new Proxy(target,handler);
+    console.log("_prop" in proxy);	//false
+    console.log("prop" in proxy);	//true
+
+    for (let key in proxy)
+        console.log(key);
+    //_prop
+    //prop
+    ```
+
+11. has方法拦截的是HasProperty操作，而不是HasOwnProperty操作，即has方法不判断一个属性是对象自身的属性还是继承的属性。
+
+12. ownKeys方法用来拦截对象自身属性的读取操作
+
+    - Object.getOwnPropertyNames
+    - Object.getOwnPropertySymbols
+    - Object.keys，有三类属性会被自动过滤
+      - 目标对象不存在的属性
+      - 属性名为Symbol值
+      - 不可遍历属性
+
+    如果目标对象自身包含不可配置的属性，则该属性必须被ownKeys方法返回，否则会报错
+
+    如果目标对象是不可拓展的，这时ownKeys方法返回的数组之中必须包含原对象的所有属性，且不能包含多余的属性，否则会报错
+
+13. Proxy.revocable的一个使用场景是，目标对象不允许直接访问，必须通过代理返问，一旦访问结束。就收回代理权不再返回。
+
+    ```javascript
+    let target = {};
+    let handler = {};
+    let {proxy,revoke} = Proxy.revocable(target,handler);
+    proxy.foo = 123;
+    console.log(proxy.foo);		//123
+    revoke();                     //取消proxy实例
+    console.log(proxy.foo);     //TypeRrror
+    ```
+
+14. 虽然Proxy可以代理针对目标对象的访问，但它不是目标对象的透明代理，即不做任何拦截的情况下也无法保证与目标对象行为一致。主要原因就是在Proxy代理的情况下，目标对象内部的this关键字会指向Proxy代理。
+
+    ```javascript
+    const target = {
+        m:function () {
+            console.log(this === proxy);
+        }
+    };
+    const handler = {};
+    const proxy = new Proxy(target,handler);
+    target.m(); //false
+    proxy.m();  //true
+    ```
+
+15. 此外，有些原生对象的内部属性只有通过正确的this才能获取，所以Proxy也无法代理这些原生对象的属性。
+
+    ```javascript
+    const target = new Date();
+    const handler = {};
+    const proxy = new Proxy(target,handler);
+    proxy.getDate();    //TypeError: this is not a Date object.
+
+    //这时this绑定原始对象就可以解决这个问题
+    const target = new Date();
+    const handler = {
+        get(target,prop){
+            if(prop=="getDate"){
+                return target.getDate.bind(target);
+            }
+            return Reflect.get(target,prop);
+        }
+    };
+    const proxy = new Proxy(target,handler);
+    console.log(proxy.getDate());	//19
+    ```
+
+16. Proxy对象可以拦截目标对象的任何属性，这使它可以很合适用来编写web服务的客户端
+
+    ```javascript
+    function creatWebService(baseUrl) {
+        return new Proxy({},{
+            //拦截操作...
+        });
+    }
+    ```
+
+### 第14章 Promise对象
+
+1. Promise是异步编程的一种解决方案，简单来说就是一个容器，里面保存着某个为了才会结束的事件的结果。从语法上来说，Promise是一个对象，从它可以获取异步操作的消息。Promise提供统一的API，各种异步操作都可以用同样的方法进行处理。
+
+   Promise对象有以下两个特点：
+
+   - 对象的状态不受外界的影响。Promise对象代表一个异步操作，有三种状态:Pending(进行中)，Fulfilled(已成功)，Rejected(已失败)。只有异步操作的结果可以决定当前是哪种状态。
+   - 一旦状态改变就不会再变，任何时候都可以得到这个结果。
+
+2. 基本用法
+
+   ```javascript
+   let promise = new Promise(function (resolve,reject) {
+   	// do something...
+   	console.log("sdfa");
+   	if (/*异步操作成功*/) {
+   		resolve(args);
+   	}
+   	else{
+   		reject(args);
+   	}
+   });
+   ```
+
+3. 一旦创建立即执行
+
+4. ​
+
 ### 第15章 Iterator和for...of循环
 
 1. Iterator接口的目的是为所有数据结构提供统一的访问机制，即for...of循环
@@ -1286,4 +1659,91 @@
    //yield命令后面只能是Thunk函数或者promise对象 v4.0好像只能支持promise了...
    ```
 
+
+### 第18章 async函数
+
+1. async函数
+
+   - 内置执行器
+   - 更好的语义
+   - 更广的实用性
+   - 返回promise
+
+2. 用法
+
+   async返回一个promise对象，可以使用then方法添加回调函数。当函数执行的时候，一旦遇到await就会先返回，等到异步操作完成，再接着执行函数体内后面的语句。
+
+   async函数返回一个promise对象
+
+3. await命令后面跟着的是一个promise对象，如果不是那么会隐式转换为promise对象，只要一个async函数中的一个await语句后面的promise变成reject，那么整个async函数都会中断执行
+
+   所以可以在await后面的promise对象加一个catch方法
+
+4. await命令后面的promise对象的运行结果可能是rejected，所以最好把await命令放在try...catch中
+
+5. 多个await命令后面的异步操作如果不存在继发关系的话，最好让它们同时触发。
+
+   ```javascript
+   let [foo,bar] = await Promise.all([getFoo(),getBar()]);
+   ```
+
+6. map并发执行
+
+   ```javascript
+   async function logInOrder(urls){
+       //并发读取远程url
+       const textPromise = urls.map(async url=>{
+           const response = await fetch(url);
+           return response.text;
+       });
+       //按次序输出
+       for(const textPromises of textPromsises){
+           console.log(await textPromise);
+       }
+   }
+   ```
    ​
+
+
+### 第19章 Class的基本语法
+
+1. ES6的类完全可以看作构造函数的另一种写法
+
+   ```javascript
+   class Point {
+
+   }
+   console.log(typeof Point)	//function	
+   console.log(Point === Point.prototype.constructor)	//true
+   ```
+
+2. 构造函数的prototype属性在ES6的"类"上继续存在。事实上，类的所有方法都定义在类的prototype属性上。
+
+
+
+### 第22章 Module的语法
+
+1. CommonJS模块就是对象，输入时必须查找对象属性
+
+   ```javascript
+   let { stat, exists,readFile } = require("fs");
+   //等同于
+   let _fs = require("fs");
+   let stat = _fs.stat;
+   let exists = _fs.exists;
+   let readFile = _fs.readFile;
+   ```
+
+   即整体加载fs模块，生成一个对象。然后再从这个对象读取这3个方法。即"运行时加载"
+
+   ES6的模块不是对象，而是通过export命令显示指定输出的代码，再通过import命令输入
+
+   ```javascript
+   //ES6模块加载
+   import { stat, exists,readFile } from "fs";
+   ```
+
+   即从fs模块中加载了3个方法，而不加载其他方法，即"编译时加载"或"静态加载"
+
+2. 模块功能主要是由两个命令构成:export和import
+
