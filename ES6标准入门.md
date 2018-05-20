@@ -1278,6 +1278,68 @@
     }
     ```
 
+### 第13章 Reflect
+
+1. reflect将object对象的一些明显属于语言内部的方法放到reflect对象上，并修改某些object方法的返回结果
+
+2. reflect对象的方法与proxy对象的方法一一对应，只要是proxy对象的方法，就能在reflect对象上找到对应的方法，这就使proxy对象可以方便地调用对应的reflect方法来完成默认行为，作为修改行为的基础。
+
+   ```javascript
+   let proxy = new Proxy({},{
+       get: function(target,key){
+           console.log("get",target,key);
+           return Reflect.get(target,key);
+       }
+   });
+   proxy.a = 1;
+   console.log(proxy.a);
+   //get { a: 1 } a
+   //1
+   ```
+
+3. 如果name属性部署了读取函数，则读取函数的this绑定receiver
+
+   ```javascript
+   //get
+   let obj = {
+       foo:1,
+       bar:2,
+       get baz(){
+           return this.foo + this.bar;
+       },
+   };
+   let a = {
+       foo:4,
+       bar:4
+   };
+   console.log(Reflect.get(obj,"baz",a));//8
+   console.log(Reflect.get(obj,"baz"));//3
+   ```
+
+   ```javascript
+   //set
+   let obj = {
+       foo:1,
+       bar:2,
+       set baz(value){
+           return this.foo = value;
+       },
+   };
+   let a = {
+       foo:4,
+       bar:4
+   };
+   Reflect.set(obj,"baz",10,a);
+   console.log(obj.foo);	//1
+   console.log(a.foo);		//10
+   ```
+
+4. Reflect.set会触发Proxy.defineProperty拦截
+
+5. reflect.ownKeys方法返回对象的所有属性，基本等同于Object.getOwnPropertyNames与Object.getOwnSymbols之和
+
+6. 用proxy实现观测者模式
+
 ### 第14章 Promise对象
 
 1. Promise是异步编程的一种解决方案，简单来说就是一个容器，里面保存着某个为了才会结束的事件的结果。从语法上来说，Promise是一个对象，从它可以获取异步操作的消息。Promise提供统一的API，各种异步操作都可以用同样的方法进行处理。
@@ -1304,7 +1366,40 @@
 
 3. 一旦创建立即执行
 
-4. ​
+4. 状态一旦改变立即执行then函数
+
+5. 如果调用resolve函数和reject函数时带有参数，那么这些参数会传递给回调函数。reject函数的参数通常是Error对象的实例，表示抛出错误，resolve函数的参数还可以是promise对象，此时要注意
+
+   ```javascript
+
+   ```
+
+6. resolve和reject并不会中介promise参数函数的执行
+
+7. then方法返回的是一个新的promise实例
+
+   其return的值为返回promise实例then方法的参数
+
+   建议使用catch方法
+
+8. Promise.race方法同样是将多个promise包装成一个实例，其中一个promise改变状态，该实例状态就发生改变
+
+9. Promise.resolve参数为thenable对象，个人理解：
+
+   Promise将这个对象转为promise对象，然后立即执行thenable对象的then方法，其中then将变成参数为(resolve,reject)的方法，该then方法函数行为和promise构造函数行为相似
+
+   ```javascript
+   let thenable = {
+       then:function (resolve,reject) {
+           // resolve(42);
+           console.log("thenable");
+           // resolve(1);
+           reject(1);
+       }
+   };
+   let p1 = Promise.resolve(thenable);
+   p1.then(value => console.log(value) ).catch(value => console.log(value));
+   ```
 
 ### 第15章 Iterator和for...of循环
 
@@ -1702,7 +1797,6 @@
        }
    }
    ```
-   ​
 
 
 ### 第19章 Class的基本语法
@@ -1719,7 +1813,132 @@
 
 2. 构造函数的prototype属性在ES6的"类"上继续存在。事实上，类的所有方法都定义在类的prototype属性上。
 
+   在类的实例上调用方法，就是调用原型的方法
 
+3. 类内部定义的方法是不可以枚举
+
+4. 类和模块的内部默认使用严格模式
+
+5. 使用new调用构造函数会自动创建一个新的对象，调用构造函数的一个重要特征是，构造函数的prototype属性被新对象作为原型。这意味着通过同一个构造函数创建的所有对象都继承一个相同的对象
+
+6. constrictor方法，构造函数
+
+7. ~~实例的属性除非显示的定义在其本身（即this对象）上，否则都是定义在原型上~~
+
+8. 不存在变量提升
+
+9. 类的方法内部如果含有this，它将默认指向类的实例。
+
+   ```javascript
+   class Logger {
+       printName(name = "there"){
+           this.print(`hello,${name}`);
+       }
+       print(text){
+           console.log(text);
+       }
+   }
+   const logger = new Logger();
+   const {printName} = logger;
+   printName();//TypeError: Cannot read property 'print' of undefined
+   //this默认指向Logger类的实例，但是如果将这个方法解构出来单独使用，此时this指向当前运行环境，因为找不人print方法导致报错
+   ```
+   解决方法：
+
+   ```javascript
+   //可以在构造方法中绑定this
+   constructor(){
+       this.printName = this.printName.bind(this);
+   }
+   ```
+
+10. class的静态方法
+
+   如果在一个方法前加上static关键字，就表示该方法不会被实例继承而是通过类直接调用
+
+   ~~静态属性支持不了好像~~
+
+11. class内部调用new.target返回当前class
+
+    子类继承父类的时候，new.target会返回子类
+
+
+### 第20章 Class的继承
+
+1. class可以通过extends关键字实现继承
+
+2. 子类必须在constructor方法中调用super方法，否则新建实例会报错。这是因为子类没有自己的this对象，而是继承父类的this对象，然后对其加工，不调用super方法，子类就没有没法拿到this对象
+
+   ES5的继承实质是先创建子类的实例对象this，然后再将父类的方法添加到this上面，ES6的继承机制完全不同，实质是先创造父类的实例对象this，然后再用子类的构造函数修改this
+
+3. 在子类构造函数中，只有调用super之后才可以使用this关键字
+
+4. super可以当做方法，也可以当做对象使用，只有在constructor中才可以当方法使用，并且super作为对象只能拿到父类原型上的方法
+
+5. 类的prototype和\__proto__
+
+   class拥有prototype和\__proto__两个属性，因此存在两条继承链
+
+   - 子类的\__proto__属性表示构造函数的继承，总是指向父类
+   - 子类的prototype属性的\__proto__属性表示方法的继承，总是指向父类的prototype
+
+   ```javascript
+   class A {
+
+   }
+   class B extends A{
+
+   }
+   console.log(B.__proto__ === A);	//true
+   console.log(B.prototype.__proto__ === A.prototype);	//true
+   ```
+
+   可以这样理解：作为一个对象，子类B的原型（\__proto__属性）是父类A；作为一个构造函数，子类B的原型（prototype）是父类的实例
+
+6. expends的继承目标
+
+   - 子类继承Object类
+
+     这种情况下，A其实就是构造函数Object的复制，A的实例就是Object的实例
+
+   - 不存在任何继承
+
+     这种情况下直接继承Function.prototype
+
+   - 继承null
+
+7. class可以继承原生构造函数
+
+8. Mixin模式的实现
+
+   ```javascript
+   function mix(...mixins) {
+       class Mix{}
+       for(let mix in mixins){
+           copyProperties(Mix,mix);
+           copyProperties(Mix.prototype,mix.prototype);
+       }   
+       return Mix;
+   }
+
+   function copyProperties(target,source) {
+       for(let key of Reflect.ownKeys(source)){
+           if(key !== "constructor" && key !== "prototype" && key !== "name"){
+               let desc = Object.getOwnPropertyDescriptor(source,key);
+               Object.defineProperties(target,key,desc);
+           }
+       }
+   }
+
+   //调用
+   class A extends mix(B,C){
+   	//...
+   }
+   ```
+
+### 第21章 修饰器
+
+=。=目前ES6不支持，babel支持所以嘻嘻摸了
 
 ### 第22章 Module的语法
 
@@ -1747,3 +1966,226 @@
 
 2. 模块功能主要是由两个命令构成:export和import
 
+
+   export
+
+   ```javascript
+   // 变量
+   // export let firstName = "firstName";
+   // export let secondeName = "secondeName";
+   // export let year = 1988;
+   // 函数
+   // export function sayName(argument) {
+   // 	console.log(firstName);
+   // }
+   // 统一输出
+   // let a = "1";
+   // let b = "2";
+   // let c = "3";
+   // // export {a,b,c};
+   // 变名输出
+   // export { a as aa,b as bb,c as cc };
+   // 默认输出
+   // export default function foo(){
+   // 	console.log("test");
+   // }
+   // 继承输出
+   // export * from "./anothermodule";
+
+   // export let d = "4";
+
+   ```
+
+   import
+
+   ```javascript
+   //普通变量
+   // import { firstName,secondeName,year } from "./module";
+   // console.log(firstName);
+   // 函数
+   // import { sayName } from "./module";
+   // sayName();
+   // 
+   // import { a,b,c } from "./module";
+   // import {aa as a, bb as b,cc as c } from "./module";
+   // console.log(a,b,c);
+   // 
+   // import * as all from "./module";
+   // console.log(all.aa);
+
+   // import xixi from "./module";
+   // xixi();
+
+   // import * as all from "./module";
+   // console.log(all.a);
+   // 
+
+   ```
+
+### 第23章 Module的加载实现
+
+1. ES6模块与CommonJS模块的差异
+
+   - CommonJS模块输出的是一个值的复制，ES6模块输出的是值的引用
+   - CommonJS模块是运行时加载，ES6模块是编译时输出接口
+
+   第二个差异是因为CommonJS加载的是一个对象（即module.exports属性），该对象只有在脚本运行结束时才会生成。而ES6模块不是对象，他的对外接口只是一种静态定义，在代码静态解析阶段就会生成。
+
+   第一个差异：
+
+   CommonJS模块输出的是值的复制，一旦输出一个值，模块内部的变化就影响不到这个值了。
+
+   ```javascript
+   //main
+   var mod = require("./commonop");
+   console.log(mod.counter);	//3
+   mod.incCounter();
+   console.log(mod.counter);	//3
+
+   //commonop
+   var counter = 3;
+   function incCounter() {
+   	counter++;
+   }
+   module.exports = {
+   	counter : counter,
+   	incCounter:incCounter
+   }
+   ```
+
+   ES6模块的运行机制与commonJS不一样，JS引擎对脚本静态分析的时候，遇到模块加载命令import就会生成一个只读引用。等到脚本真正执行时，再根据这个只读引用到被加载的模块中取值。
+
+   ```javascript
+   import { counter,incCounter } from "./moduleop"
+   console.log(counter);	//3
+   incCounter();
+   console.log(counter);	//4
+
+   //moduleop
+   export let counter = 3;
+   export function incCounter() {
+   	counter++;
+   }
+   ```
+
+2. 循环加载
+
+   - CommonJS模块的加载原理
+
+     CommonJS的一个模块就是一个脚本文件。require命令第一次加载该脚本时就会执行整个脚本，然后在内存中生成一个对象。
+
+     CommonJS模块的重要特性是加载时执行，即脚本代码在require的时候全部执行，一旦出现某个模块被"循环加载"，就只输出已经执行的部分，还未执行的部分不会输出。
+
+     ```javascript
+     //commonip
+     exports.done = false;
+     var op = require("./commonop.js");
+     console.log("在commonop中op.done为：",op.done);
+     exports.done = true;
+     console.log("commonip.js执行完毕！");
+
+     //commonip
+     exports.done = false;
+     var ip = require("./commonip.js");
+     console.log("在commonop中ip.done为：",ip.done);
+     exports.done = true;
+     console.log("commonop.js执行完毕！");
+
+     //输出
+     //在commonop中op.done为：false
+     //commonip.js执行完毕！
+     //在commonop中ip.done为：true
+     //commonop.js执行完毕！
+     ```
+
+     CommonJS执行过程类似函数执行
+
+   - ES6模块的加载
+
+     ```javascript
+     //moduleop
+     import { bar } from "./moduleip";
+     console.log("moduleop");
+     console.log(bar);
+     export let foo = "foo";
+
+     //moduleip
+     import { foo } from "./moduleop";
+     console.log("moduleip");
+     console.log(foo);
+     export var bar = "bar";
+
+     //输出
+     //moduleip
+     //undefined
+     //moduleop
+     //bar
+     ```
+
+     moduleop的第一行就是执行加载moduleip，而moduleip第一行也是执行moduleop，但是moduleop已经开始执行了，所以不会重复执行，而是继续执行moduleip
+
+### 第24章 编程风格
+
+1. let取代var
+
+2. 全局变量和线程安全
+
+   在let和const之间，建议优先使用const，尤其是在全局环境中，不应该设置变量
+
+   const优于let的原因
+
+   - const可以提醒阅读程序的人，这个变量不应该改变
+   - const比较符合函数式编程思想，运算不改变值，只是新建值，而且这样也有利于将来的分布式运算
+   - js编译器会对const进行优化，所以多使用const有利于提供程序的运行效率。也就是说let和const的本质区别是编译器内部的处理不同
+
+   所有的函数有应该设置为常量
+
+3. 字符串
+
+   - 静态字符串一律使用单引号或者反引号
+   - 动态字符串使用反引号
+
+4. 解构赋值
+
+   - 使用数组成员对变量赋值时，优先使用解构赋值
+   - 函数的参数如果是对象，优先使用解构赋值
+   - 如果函数返回的是多个值，优先使用对象的解构赋值，而不是数组的解构赋值。
+
+5. 对象
+
+   - 单行定义的对象，最后一个成员不以逗号结尾，多行定义的对象，最后一个成员以逗号结尾
+   - 对象尽量静态化，一旦定义，就不得随意添加新的属性。如果添加属性不可避免，要使用Object.assgin方法
+
+6. 数组
+
+   - 使用扩展运算符(...)复制数组
+   - 使用Array.from将类似数组的对象转为数组
+
+7. 函数
+
+   - 立即执行的函数可以写成箭头函数的形式
+
+     ```javascript
+     (()=>{
+         console.log("test");
+     })();
+     ```
+
+   - 尽量使用箭头函数，还可以顺便绑定this
+
+   - 不要在函数体内使用arguments变量，使用rest运算符(...)代替。因为rest运算符可以显示表明我们想要获取的参数，而且arguments是一个类似数组的对象，而rest运算符可以提供一个真正的数组
+
+   - 使用默认值语法设置函数参数的默认值
+
+8. 注意区分Object和Map，只有模拟实体对象时，才使用Object，如果只是需要key：value的数据结构，则使用Map。Map有内建的遍历机制
+
+9. 总是使用Class取代需要prototype的操作，因为class的写法更简洁，更易理解
+
+10. 模块
+
+    - 如果模块只有一个输出值，就使用export default
+    - 不要同时使用export和export default
+
+### 第26章 ArrayBuffer
+
+1. ​
