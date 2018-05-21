@@ -2188,4 +2188,110 @@
 
 ### 第26章 ArrayBuffer
 
-1. ​
+1. arraybuffer对象代表二进制数据的一段内存，它不能直接读写，必须通过视图操作，视图的作用就是以指定格式解读二进制数据
+
+   ```javascript
+   let buf = new ArrayBuffer(32);
+   let dataview = new DataView(buf);
+   console.log(dataview.getInt8(0));//0
+   //上面的代码对一段32字节的内存建立dataview视图，然后以不带符号的8位整数格式读取第一个元素，结果得到0，因为原始内存的arraybuffer对象默认所有位都是0
+   ```
+
+2. typearray与dataview的一个区别是，它不是一个构造函数，是一组构造函数
+
+   ```javascript
+   let buf = new ArrayBuffer(12);
+   let x1 = new Int8Array(buf);
+   let x2 = new Uint8Array(buf);
+   x1[0] = 1;
+   console.log(x2[0]);//1
+   ```
+
+   上面的代码对同一段内存构造了两种视图，由于两个视图对应的是同一段内存，因此一个视图修改底层内存会影响到另一个视图
+
+3. slice方法可以将内存区域的一部分复制生成一个新的arraybuffer对象
+
+   ```javascript
+   var buf = new ArrayBuffer(8);
+   var newbuf = buf.slice(0,3);
+   ```
+
+   复制buffer对象的前3个字节生成一个新的arraybuffer对象。slice方法其实包含两步，第一步先分配一段新内存，第二步将原来那个arraybuffer对象复制过去
+
+4. 普通数组和typedarray的差异
+
+   - typedarray数组的所有成员都是同一种类型
+   - typedarray数组是连续的，不会有空位
+   - typedarray数组成员默认值是0。比如new array(10)返回一个普通数组，里面没有任何成员，只有10个空位
+   - typedarray数组只是一层视图，本身不储存数据，它的数据都存储在底层的arraybuffer里，要获得对象必须使用buffer属性
+
+5. TypedArray数组的构造函数可以接受另一个TypedArray实例作为参数
+
+   此时生成的新数组只是复制了参数数组的值，对应的底层内存是不一样的。新数组会开辟一段新的内存存储数据，不会在原数组的内存之上建立视图
+
+   如果想基于同一段内存构造不同的视图可以利用对象的buffer属性
+
+   ```javascript
+   let x = new Int8Array([1,1]);
+   let y = new Int8Array(x.buffer);
+   x[0] = 2;
+   console.log(y[0]);//2
+   ```
+
+6. 注意字节序（大小端）
+
+7. 与普通数组相比，typearray数组的最大优点就是可以直接操作内存，不需要数据类型转化，所以速度快很多
+
+   ```javascript
+   const l = 10000000;
+   let data1 = new ArrayBuffer(l);
+   if(data1.byteLength != l)
+       console.log("内存分配失败！");
+   else{
+       let view = new Uint8Array(data1);
+       view[0] = view[1] = 1;
+       const p1 = (new Date()).valueOf();
+       for(let i = 2;i<l;i++)
+           view[i] = view[i-1]+view[i-2];
+       const p2 = (new Date()).valueOf();
+       console.log(p2-p1); //29
+   }
+   (()=>{
+       let a = new Array(l);
+       a[0] = a[1] = 1;
+       const p1 = (new Date()).valueOf();
+       for(let i = 2;i<l;i++)
+           a[i] = a[i-1]+a[i-2];
+       const p2 = (new Date()).valueOf();
+       console.log(p2-p1); //84
+   })();
+   ```
+
+8. 考虑溢出
+
+   普通溢出就是取后n位（n决定于视图类型）
+
+   但是Uint8ClampedArray视图溢出规则与上面的规则不同，它规定凡是正向溢出，该项一律等于最大值即255，逆向溢出一律等于最小值0。
+
+9. set
+
+   typedarray数组的set方法用于复制数组也就是将一段内存完全复制到另一段内存
+
+   ```javascript
+   var a = new ArrayBuffer(8);
+   var b = new ArrayBuffer(10);
+   b.set(a);
+   ```
+
+   set是整段内存的复制，比一个个成员的复制快的多
+
+10. 静态方法from接受一个可以遍历的数据结构作为参数，返回一个基于此结构的typedarray实例，并且还可以接受第二个参数，用来对每个元素进行遍历
+
+    ```javascript
+    let a = Int16Array.from(Int8Array.of(127,126,125),x=>x*2);
+    console.log(a);	//Int16Array [ 254, 252, 250 ]
+    ```
+
+    from没有发生溢出，这说明遍历不是针对原来的8位整数数组，也就是说，from会将第一个参数指定的typearray数组复制到另一段内存之中，处理之后再将结果转成指定的数据格式
+
+11. 默认情况下，dataview的get方法使用大端解读数据，如果需要小端解读，可以在第二个参数指定true
