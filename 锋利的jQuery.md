@@ -93,4 +93,204 @@
 
 14. 包裹节点
 
+    如果要将某个结点用其他标记包裹起来，jQuery提供了相应的方法即swap
+
+15. 属性操作
+
+    用attr方法来获取和设置元素属性，removeAtrr方法来删除元素属性
+
+16. toggle(方法——切换元素的可见状态。
+
+17. 设置和获取文本的HTML，文本和值
+
+    - html方法——innerHTML
+
+    - text方法——innerText
+
+    - val方法——value
+
+      个人感觉是value是表单元素，获取值
+
+18. children方法只考虑直接子元素而不考虑其他后代元素
+
+19. 同级元素操作
+
+    - next：该方法用于取得匹配元素后面紧邻的同辈元素
+    - prev：该方法用于取得匹配元素前面紧邻的同辈元素
+    - siblings：该方法用于取得匹配元素前后所有的同辈元素
+
+20. parent，parents，closest的区别
+
+    - parent：返回直接父节点
+    - parents：返回所有父节点
+    - closest：和parents相似但是只返回第一个节点
+
+21. 对于透明度的设置，可以直接使用opacity，jQuery已经做好了兼容性问题
+
+22. 在CSS-DOM中关于元素定位的常用方法：
+
+    - offset：获取元素在当前视窗的相对偏移
+    - position：获取绝对定位相对于定位元素的祖先的距离
+    - scrolltop：获取滚动条顶端的距离
+
+23. hover方法
+
+    hover(enter,leave)
+
+24. preventDefault方法阻止默认行为
+
+25. 事件对象的属性
+
+    - event.type
+    - event.preventDefault
+    - event.stopPropagation 阻止事件冒泡
+    - event.target
+    - event.which 判断鼠标按键或者键盘按键
+    - event.metaKey 获取Ctrl
+    - event.pageX和event.pageY
+
+26. one——为元素绑定处理函数，当处理触发一次之后，立即被删除
+
+    ```javascript
+    $(".botton").one("click",()=>console.log("1"));
+    ```
+
+27. 模拟事件——trigger
+
+28. 添加事件命名空间，便于管理
+
+    ```javascript
+    $(".botton").bind("click.plugin",function () {
+       console.log(1);
+        $(".botton").unbind(".plugin");	//移除plugin命名空间下的事件
+    });
+    ```
+
+29. trigger("click!")后面的感叹号的作用是匹配所有不包含在命名的click方法
+
+30. 自定义动画方法
+
+    ```javascript
+    $(this).animate(params,speed,callback);
+    //params:一个包含样式属性以及值的映射
+    ```
+
+31. 累加，累减动画
+
+    ```javascript
+    $(this).animate({left:"+=50px"},300);
+    ```
+
+32. 多重动画
+
+    ```javascript
+    //同时执行多个动画
+    $(this).animate({left:"+=50px",height:"+=20px"},300);
+    //按顺序执行多个动画
+    $(this).animate({left:"+=50px"},300)
+    	  .animate({height:"+=20px"},300)；
+    ```
+
+33. 判断元素是否处于动画状态
+
+    ```javascript
+    $(".test").is(":animated");
+    ```
+
+34. 动画队列
+
+    - 一组元素上的动画效果
+      - 当一个animate方法中应用多个属性时，动画是同时发生的
+      - 当以链式的写法应用动画方法时，动画是按照顺序发生的
+    - 多组元素的动画效果
+      - 默认情况下，动画是同时发生的
+      - 当以回调的形式应用动画方式时，动画是按照回调顺序发生的
+
+35. 表单提交时可以根据错误提示的class数量判断可不可以提交
+
+36. 可以给表单元素绑定keyup事件和focus事件，实现即时提醒
+
+37. end方法
+
+    ```javascript
+    $(this).addClass("selected")
+        .siblings().removeClass("selected")
+        .end()
+        .find(":radio").attr("checked",true);
+    ```
+
+    当前对象是\$(this)在进行addClass("selected")操作之后，对象并未发生变化，但执行了.siblings().removeClass("selected")之后，对象已经变成了$(this).siblings()了，后面的操作都是针对$(this).siblings()的，如果需要返回到$(this)对象就可以使用end()方法
+
+38. ajax方法常用参数
+
+    - url
+    - type
+    - data
+    - dataType——预期服务器返回的数据类型
+    - beforeSend——发送请求前可以修改XMLHttpRequest对象的函数，例如添加自定义的HTTP头
+    - complete——请求完成调用的回调函数，成功失败均可以
+    - success——有两个参数(data,textStatus)
+    - error——三个参数依次是XMLHttpRequest对象，错误信息，捕获的错误对象
+    - global——是否触发全局ajax事件，默认true
+
+39. ajax方法中data是字符串方式时，需要注意对字符串的编码，如果不希望编码带来麻烦，可以使用serialize方法
+
+40. 直接提交表单元素
+
+    ```javascript
+    $("#form1").serialize()
+    ```
+
+41. $.param方法：serialize方法的核心，用来对数组和对象序列化
+
+    ```javascript
+    var obj = {a:1,b:2,c:3};
+    var k = $.param(obj);
+    alert(k);//a=1&b=2&c=3
+    ```
+
+42. ajax的全局事件
+
+43. 定义视口
+
+44. data-属性是H5新推出的很有趣的一个特性，它可以让开发人员添加任意属性到html标签中，只要添加的属性名有"data-"前缀
+
+45. jQuery性能优化
+
+    - 使用最新版jQuery
+
+    - 使用合适的选择器
+
+      - 尽量使用id选择器，如果找不到再调用find方法
+      - 标签选择器是第二选择
+      - 类选择器有选择的使用它
+      - 利用属性选择器定位DOM元素性能不是非常理想
+      - 伪选择器同上
+      - 尽量给选择器指定上下文
+
+    - 缓存对象
+
+      频繁使用的DOM对象可以定义一个变量将其缓存
+
+    - 避免在循环中操作DOM
+
+    - 数组方式使用jQuery对象，而不是each
+
+    - 事件委托
+
+    - join拼接字符串
+
+    - 合理利用H5的Data属性
+
+      jQuery的data方法
+
+      ```javascript
+      //<div id="d1" data-role="page"></div>
+      $("#d1").data("role")//page
+      ```
+
+    - 尽量使用原生js
+
+    - 压缩js
+
     ​
