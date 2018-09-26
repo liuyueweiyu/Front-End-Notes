@@ -67,7 +67,7 @@ typora-copy-images-to: images
 
    ​	![img](https://user-gold-cdn.xitu.io/2017/11/11/88e11709488aeea3f9c6595ee4083bf3?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
 
-   	或者看看这篇[博客](https://juejin.im/post/5a062fb551882535cd4a4ce3)
+   或者看看这篇[博客](https://juejin.im/post/5a062fb551882535cd4a4ce3)
 
-5. 
+5. 以大写字母做为组件开头，html标签以小写开头
 
